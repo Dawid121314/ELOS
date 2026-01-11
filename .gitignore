@@ -1,0 +1,16 @@
+# Windows / temp
+Thumbs.db
+Desktop.ini
+*.lnk
+$RECYCLE.BIN/
+
+# SSH / keys (NIGDY do repo)
+.ssh/
+*.pem
+*.key
+id_ed25519
+id_ed25519.pub
+known_hosts
+
+# Local notes / accidental files
+Start-Service ssh-agent*
