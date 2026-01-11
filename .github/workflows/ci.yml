@@ -1,7 +1,8 @@
-name: CI
+name: CIname: CI
 
 on:
   push:
+<<<<<<< HEAD
     branches: ["main"]
   pull_request:
     branches: ["main"]
@@ -9,6 +10,9 @@ on:
 
 permissions:
   contents: read
+=======
+  pull_request:
+>>>>>>> ffdaf45 (Harden CI: ubuntu+windows, ruff non-blocking, compile blocking)
 
 jobs:
   test:
@@ -29,11 +33,15 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+<<<<<<< HEAD
+=======
+          cache: pip
+>>>>>>> ffdaf45 (Harden CI: ubuntu+windows, ruff non-blocking, compile blocking)
 
       - name: Install dependencies
-        shell: bash
         run: |
           python -m pip install --upgrade pip
+<<<<<<< HEAD
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
@@ -50,17 +58,41 @@ jobs:
           ruff check . || echo "Ruff warnings (non-blocking)"
 
       - name: Compile (py_compile, blocking)
+=======
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+>>>>>>> ffdaf45 (Harden CI: ubuntu+windows, ruff non-blocking, compile blocking)
         shell: bash
+
+      # Reminder: lint ma być informacyjny na start (nie blokuje rozwoju)
+      - name: Lint (ruff) - non-blocking
+        run: |
+          ruff --version
+          ruff check . || true
+        shell: bash
+
+      # Syntax errors MUSZĄ blokować (to realny błąd)
+      - name: Compile (py_compile)
         run: |
           python - << 'PY'
+<<<<<<< HEAD
           import compileall, sys
           ok = compileall.compile_dir(".", quiet=1)
           sys.exit(0 if ok else 1)
           PY
+=======
+          import sys, pathlib, py_compile
+          root = pathlib.Path(".")
+          files = [p for p in root.rglob("*.py") if ".venv" not in str(p) and ".git" not in str(p)]
+          for f in files:
+              py_compile.compile(str(f), doraise=True)
+          print(f"OK: compiled {len(files)} files")
+          PY
+        shell: bash
+>>>>>>> ffdaf45 (Harden CI: ubuntu+windows, ruff non-blocking, compile blocking)
 
       - name: Tests (pytest if tests/ exists)
-        shell: bash
         run: |
+<<<<<<< HEAD
           if [ -d "tests" ]; then
             pytest -q
           else
@@ -99,3 +131,7 @@ jobs:
         shell: bash
         run: |
           pip-audit || echo "pip-audit found issues (non-blocking)"
+=======
+          if [ -d "tests" ]; then pytest -q; else echo "No tests/ directory - skipping"; fi
+        shell: bash
+>>>>>>> ffdaf45 (Harden CI: ubuntu+windows, ruff non-blocking, compile blocking)
