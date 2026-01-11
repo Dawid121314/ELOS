@@ -38,15 +38,17 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           pip install ruff pytest
 
-      # Lint (non-blocking)
-      - name: Lint (ruff) - non-blocking
+      - name: Lint (ruff, blocking syntax errors)
         shell: bash
         run: |
-          ruff --version
+          ruff check . --select E9,F
+
+      - name: Lint (ruff, non-blocking)
+        shell: bash
+        run: |
           ruff check . || true
 
-      # Syntax errors MUST block
-      - name: Compile (py_compile) - blocking
+      - name: Compile (py_compile, blocking)
         shell: bash
         run: |
           python - << 'PY'
@@ -61,28 +63,19 @@ jobs:
       - name: Tests (pytest if tests/ exists)
         shell: bash
         run: |
-          if [ -d "tests" ]; then
-            pytest -q
-          else
-            echo "No tests/ directory - skipping"
-          fi
+          if [ -d "tests" ]; then pytest -q; else echo "No tests/ directory - skipping"; fi
 
   security:
     name: Security (bandit + pip-audit) [non-blocking]
     runs-on: ubuntu-latest
-
-    # Tylko push do main + manual (żeby nie mielić na PR)
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-          cache: pip
 
       - name: Install tools
         shell: bash
@@ -94,9 +87,9 @@ jobs:
       - name: Bandit (non-blocking)
         shell: bash
         run: |
-          bandit -r . -x ./.github,./tests || echo "Bandit found issues (non-blocking)"
+          bandit -r . -x ./.github,./tests || true
 
       - name: pip-audit (non-blocking)
         shell: bash
         run: |
-          pip-audit || echo "pip-audit found issues (non-blocking)"
+          pip-audit || true
