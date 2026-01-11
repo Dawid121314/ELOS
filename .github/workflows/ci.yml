@@ -72,3 +72,12 @@ jobs:
           else
             echo "No tests/ directory — skipping pytest."
           fi
+      - name: Security scan (pip-audit, non-blocking)
+        run: |
+          pip install pip-audit
+          pip-audit || true
+
+     - name: Security scan (bandit, non-blocking)
+       run: |
+         pip install bandit
+         bandit -r . || true
