@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }} • ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          # jeśli masz requirements.txt — instalujemy
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+          # narzędzia CI (lekki zestaw)
+          pip install ruff pytest
+
+      - name: Lint (ruff)
+        shell: bash
+        run: |
+          # jeśli nie masz jeszcze konfiguracji, ruff i tak zadziała
+          ruff check . --output-format=github
+
+      - name: Compile (py_compile)
+        shell: bash
+        run: |
+          python - << 'PY'
+          import compileall, sys
+          ok = compileall.compile_dir(".", quiet=1)
+          sys.exit(0 if ok else 1)
+          PY
+
+      - name: Tests (pytest if tests/ exists)
+        shell: bash
+        run: |
+          if [ -d "tests" ]; then
+            pytest -q
+          else
+            echo "No tests/ directory — skipping pytest."
+          fi
