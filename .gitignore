@@ -14,3 +14,8 @@ known_hosts
 
 # Local notes / accidental files
 Start-Service ssh-agent*
+
+# Python cache
+__pycache__/
+*.pyc
+
