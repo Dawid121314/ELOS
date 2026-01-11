@@ -41,9 +41,17 @@ jobs:
           # narzędzia CI (lekki zestaw)
           pip install ruff pytest
 
-      - name: Lint (ruff, non-blocking)
+      - name: Ruff (blocking – critical errors only)
         run: |
-          ruff check . || echo "Ruff warnings ignored for now"
+          ruff check . --select E9,F
+
+      - name: Ruff (non-blocking – style)
+        run: |
+          ruff check . || true
+
+      - name: Compile (py_compile)
+        run: |
+          python -m py_compile $(git ls-files '*.py')
 
 
       - name: Compile (py_compile, non-blocking)
