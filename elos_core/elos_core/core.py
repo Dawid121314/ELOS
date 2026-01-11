@@ -1,2 +1,2 @@
 def elos_identity() -> str:
-    return "ELOS core online"
+    return "ELOS (Enhanced Logical Operating System) — online"
