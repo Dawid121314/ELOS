@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 
-jobs:
+  jobs:
   test:
     name: Python ${{ matrix.python-version }} • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
