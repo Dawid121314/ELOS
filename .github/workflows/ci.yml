@@ -14,6 +14,43 @@ jobs:
   test:
     name: Python ${{ matrix.python-version }} • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+  security:
+    name: Security (bandit + pip-audit) [non-blocking]
+    runs-on: ubuntu-latest
+
+    # Tylko push do main (manual też dopuścimy)
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install tools
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit pip-audit
+
+          # jeśli masz requirements.txt – instalujemy zależności
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+      - name: Bandit (non-blocking)
+        shell: bash
+        run: |
+          bandit -r . -x ./.github,./tests || echo "Bandit found issues (non-blocking)"
+
+      - name: pip-audit (non-blocking)
+        shell: bash
+        run: |
+          # audyt zainstalowanych pakietów
+          pip-audit || echo "pip-audit found issues (non-blocking)"
 
     strategy:
       fail-fast: false
