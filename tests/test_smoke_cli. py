@@ -1,0 +1,23 @@
+import subprocess
+import sys
+
+
+def run(*args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, "elos.py", *args],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
+def test_cli_whoami():
+    p = run("whoami")
+    assert p.returncode == 0
+    assert "ELOS" in p.stdout
+
+
+def test_cli_status_json():
+    p = run("status")
+    assert p.returncode == 0
+    assert '"name": "ELOS"' in p.stdout
