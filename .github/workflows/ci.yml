@@ -45,10 +45,14 @@ jobs:
         run: |
           ruff check . --select E9,F
 
-      - name: Lint (ruff, non-blocking style)
+      - name: Lint (ruff)
         shell: bash
         run: |
-          ruff check . || true
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+          ruff check . || echo "Ruff warnings (PR) - non blocking"
+          exit 0
+          fi
+          ruff check . --select E,F
 
       - name: Compile (py_compile, blocking)
         shell: bash
