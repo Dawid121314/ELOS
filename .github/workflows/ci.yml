@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -14,6 +14,7 @@ jobs:
   test:
     name: Python ${{ matrix.python-version }} • ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -28,41 +29,35 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
 
       - name: Install dependencies
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          # jeśli masz requirements.txt — instalujemy
           if [ -f requirements.txt ]; then
             pip install -r requirements.txt
           fi
-          # narzędzia CI (lekki zestaw)
           pip install ruff pytest
 
-      - name: Ruff (blocking – critical errors only)
+      # Ruff: krytyczne błędy blokują, styl nie blokuje
+      - name: Lint (ruff, blocking for E9/F)
+        shell: bash
         run: |
           ruff check . --select E9,F
 
-      - name: Ruff (non-blocking – style)
+      - name: Lint (ruff, non-blocking style)
+        shell: bash
         run: |
           ruff check . || true
 
-      - name: Compile (py_compile)
-        run: |
-          python -m py_compile $(git ls-files '*.py')
-
-
-      - name: Compile (py_compile, non-blocking)
+      - name: Compile (py_compile, blocking)
         shell: bash
         run: |
           python - << 'PY'
-          import compileall
-          compileall.compile_dir(".", quiet=1)
-          print("Compile warnings (if any) ignored for now")
+          import compileall, sys
+          ok = compileall.compile_dir(".", quiet=1)
+          sys.exit(0 if ok else 1)
           PY
-
 
       - name: Tests (pytest if tests/ exists)
         shell: bash
@@ -70,14 +65,18 @@ jobs:
           if [ -d "tests" ]; then
             pytest -q
           else
-            echo "No tests/ directory — skipping pytest."
+            echo "No tests/ directory"
           fi
+
+      # Security: na start non-blocking
       - name: Security scan (pip-audit, non-blocking)
+        shell: bash
         run: |
           pip install pip-audit
           pip-audit || true
 
-     - name: Security scan (bandit, non-blocking)
-       run: |
-         pip install bandit
-         bandit -r . || true
+      - name: Security scan (bandit, non-blocking)
+        shell: bash
+        run: |
+          pip install bandit
+          bandit -r . || true
