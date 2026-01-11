@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-
   jobs:
   test:
     name: Python ${{ matrix.python-version }} • ${{ matrix.os }}
