@@ -42,18 +42,18 @@ jobs:
           pip install ruff pytest
 
       - name: Lint (ruff, non-blocking)
-  run: |
-    ruff check . || echo "Ruff warnings ignored for now"
+        run: |
+          ruff check . || echo "Ruff warnings ignored for now"
 
 
       - name: Compile (py_compile, non-blocking)
-  shell: bash
-  run: |
-    python - << 'PY'
-    import compileall
-    compileall.compile_dir(".", quiet=1)
-    print("Compile warnings (if any) ignored for now")
-    PY
+        shell: bash
+        run: |
+          python - << 'PY'
+          import compileall
+          compileall.compile_dir(".", quiet=1)
+          print("Compile warnings (if any) ignored for now")
+          PY
 
 
       - name: Tests (pytest if tests/ exists)
