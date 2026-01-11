@@ -21,7 +21,7 @@ jobs:
     # Tylko push do main (manual też dopuścimy)
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
 
-    steps:
+  steps:
       - name: Checkout
         uses: actions/checkout@v4
 
